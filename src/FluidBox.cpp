@@ -12,8 +12,8 @@ void FluidBox::set_viscosity(double v) { visc = v; }
 // Iterative algorithm to solve the linear system ax = b
 // The output, y, is equal to the next iteration of x
 VD1 FluidBox::gauss_seidel(VD2 a, VD1 b, VD1 x) 
-{
-    VD1 y(N+2, 0);
+{   
+    VD1 y(N+2, 0); // deep copy
     for (int i=0; i<N+2; i++)
     {
         y[i] = b[i]/a[i][i];
@@ -41,7 +41,27 @@ void FluidBox::forces(VD3 f, double dt)
     }
 }
 
-void FluidBox::diffusion() {}
+void FluidBox::diffusion(double dt) 
+{
+    // effective diffusion coef, resized with the dimension of the box and the deltatime
+    double eff_diff = N*N*diff*dt; 
+
+    VD2 u0(u); // deep copy
+    VD2 v0(v); // deep copy
+    for (int k=0; k<k_gs; k++) {
+        for (int i=1; i<N+1; i++) {
+            for (int j=1; j<N+1; j++) {
+                u[i][j] += (u0[i][j] + eff_diff*(u[i-1][j] + u[i+1][j] + 
+                                          u[i][j-1] + u[i][j+1])) / (1+4*eff_diff);
+                v[i][j] += (v0[i][j] + eff_diff*(v[i-1][j] + v[i+1][j] + 
+                                          v[i][j-1] + v[i][j+1])) / (1+4*eff_diff);
+            }
+        }
+        boundaries_u(); // continuity at boundarie
+        boundaries_v();
+    }
+}
+
 void FluidBox::advection() {}
 
 void FluidBox::update(VD3 f, double dt) {}

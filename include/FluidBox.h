@@ -10,6 +10,7 @@ typedef vector<vector<double>> VD2;
 typedef vector<vector<vector<double>>> VD3;
 
 static int const N = 0;
+static int const k_gs = 20; // number of iteration in gauss_seidel
 
 class FluidBox {
 public:
@@ -26,9 +27,11 @@ public:
     
     // update steps
     void forces(VD3 f, double dt);
-    void diffusion();
+    void diffusion(double dt);
     void advection();
     void conserve_masse();
+    void boundaries_u();
+    void boundaries_v();
 
     void update(VD3 f, double dt);
 
@@ -36,16 +39,20 @@ public:
     void draw(sf::RenderWindow*);
 
 private:
-    // Viscosity coef
+    // coefs
     double visc;
+    double diff;
 
     // x velocity 
-    VD2 u; // +2 for borders
+    VD2 u;
+    VD2 prev_u;
     // y velocity 
-    VD2 v; // +2 for borders
+    VD2 v;
+    VD2 prev_v;
 
     // density 
-    VD2 rho; // +2 for borders
+    VD2 rho;
+    VD2 prev_rho;
 };
 
 #endif
