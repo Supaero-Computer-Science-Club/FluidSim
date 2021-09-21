@@ -1,6 +1,8 @@
 #ifndef FLUIDBOX_H
 #define FLUIDBOX_H
 
+#include <SFML/Graphics.hpp>
+
 int static const N = 100;
 
 class FluidBox {
@@ -14,12 +16,15 @@ public:
     void set_viscosity(double v);
     
     // update steps
-    void forces(double f[N+2][N+2]);
+    void forces(double fu[N+2][N+2], double fv[N+2][N+2], double dt);
     void diffusion();
     void advection();
     void conserve_masse();
 
-    void update(double f[N+2][N+2]);
+    void update(double f[N+2][N+2], double dt);
+
+    // graphics
+    void draw(sf::RenderWindow*);
 
 private:
     // Viscosity coef

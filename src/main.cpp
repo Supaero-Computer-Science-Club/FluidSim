@@ -1,6 +1,6 @@
 #include <iostream>
 #include <SFML/Graphics.hpp>
-#include "FluidBox.h
+#include "FluidBox.h"
 
 using namespace std;
 
