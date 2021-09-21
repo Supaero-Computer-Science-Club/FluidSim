@@ -64,6 +64,46 @@ void FluidBox::diffusion(double dt)
 
 void FluidBox::advection() {}
 
+void FluidBox::boundaries_u() 
+{
+    for (int i=1; i<N+1; i++)
+    {
+        // tang 
+        u[0][i] = u[1][i];
+        u[N+1][i] = u[N][i];
+        
+        // ortho (nothing through the box)
+        u[i][0] = -u[i][1];
+        u[i][N+1] = -u[i][N];
+    }
+
+    // corners
+    u[0][0] = 0.5*(u[1][0] + u[0][1]);
+    u[N+1][0] = 0.5*(u[N][0] + u[N+1][1]);
+    u[0][N+1] = 0.5*(u[1][N+1] + u[0][N]);
+    u[N+1][N+1] = 0.5*(u[N+1][N] + u[N][N+1]);
+}
+
+void FluidBox::boundaries_v() 
+{
+    for (int i=1; i<N+1; i++)
+    {
+        // ortho (nothing through the box)
+        v[0][i] = -v[1][i];
+        v[N+1][i] = -v[N][i];
+        
+        // tang
+        v[i][0] = v[i][1];
+        v[i][N+1] = v[i][N];
+    }
+
+    // corners
+    v[0][0] = 0.5*(v[1][0] + v[0][1]);
+    v[N+1][0] = 0.5*(v[N][0] + v[N+1][1]);
+    v[0][N+1] = 0.5*(v[1][N+1] + v[0][N]);
+    v[N+1][N+1] = 0.5*(v[N+1][N] + v[N][N+1]);
+}
+
 void FluidBox::update(VD3 f, double dt) {}
 
 void FluidBox::draw(sf::RenderWindow * p_window) {}
