@@ -1,18 +1,42 @@
 #include "FluidBox.h"
 
-double** FluidBox::get_u() { return (double **) u; }
-double** FluidBox::get_v() { return (double **) v; }
-double** FluidBox::get_rho() { return (double **) rho; }
+VD2 FluidBox::get_u() { return u; }
+VD2 FluidBox::get_v() { return v; }
+VD2 FluidBox::get_rho() { return rho; }
 
 void FluidBox::set_viscosity(double v) { visc = v; }
 
-// update the velocity of each particules due to external forces
-void FluidBox::forces(double fu[N+2][N+2], double fv[N+2][N+2], double dt) 
+// Static functions
+
+// Gauss Seidel 
+// Iterative algorithm to solve the linear system ax = b
+// The output, y, is equal to the next iteration of x
+VD1 FluidBox::gauss_seidel(VD2 a, VD1 b, VD1 x) 
 {
-    for (int i=0; i<N+2; i++) {
-        for (int j=0; j<N+2; j++) {
-            u[i][j] += dt*fu[i][j];
-            v[i][j] += dt*fv[i][j];
+    VD1 y(N+2, 0);
+    for (int i=0; i<N+2; i++)
+    {
+        y[i] = b[i]/a[i][i];
+        for (int j=0; j<i; j++) {
+            y[i] -= a[i][j]*y[j]/a[i][i]; 
+        }
+        for (int j=i+1; j<N+2; j++) {
+            y[i] -= a[i][j]*x[j]/a[i][i]; 
+        }
+    }
+    return y;
+}
+
+// update the velocity of each particules due to external forces, in each direction
+void FluidBox::forces(VD3 f, double dt) 
+{
+    for (int k=0; k < f.size(); k++) 
+    {
+        for (int i=0; i<N+2; i++) {
+            for (int j=0; j<N+2; j++) {
+                u[i][j] += dt*f[k][i][j];
+                v[i][j] += dt*f[k][i][j];
+            }
         }
     }
 }
@@ -20,6 +44,6 @@ void FluidBox::forces(double fu[N+2][N+2], double fv[N+2][N+2], double dt)
 void FluidBox::diffusion() {}
 void FluidBox::advection() {}
 
-void FluidBox::update(double f[N+2][N+2], double dt) {}
+void FluidBox::update(VD3 f, double dt) {}
 
 void FluidBox::draw(sf::RenderWindow * p_window) {}
