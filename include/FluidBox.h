@@ -9,11 +9,13 @@ typedef vector<double> VD1;
 typedef vector<vector<double>> VD2;
 typedef vector<vector<vector<double>>> VD3;
 
-static int const N = 0;
+static int const N = 50;
 static int const k_gs = 20; // number of iteration in gauss_seidel
 
 class FluidBox {
 public:
+    FluidBox();
+    FluidBox(double visc, double diff);
     // geters
     VD2 get_u();
     VD2 get_v();

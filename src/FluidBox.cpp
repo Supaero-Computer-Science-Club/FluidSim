@@ -1,4 +1,11 @@
 #include "FluidBox.h"
+#include <SFML/Graphics/CircleShape.hpp>
+#include <SFML/Graphics/Color.hpp>
+#include <SFML/Graphics/Rect.hpp>
+#include <SFML/Graphics/RectangleShape.hpp>
+#include <SFML/System/Vector2.hpp>
+
+FluidBox::FluidBox() {}
 
 VD2 FluidBox::get_u() { return u; }
 VD2 FluidBox::get_v() { return v; }
@@ -106,4 +113,33 @@ void FluidBox::boundaries_v()
 
 void FluidBox::update(VD3 f, double dt) {}
 
-void FluidBox::draw(sf::RenderWindow * p_window) {}
+void FluidBox::draw(sf::RenderWindow * p_window) 
+{
+    double l = 800; // size of the box
+    double off = 100;
+    double width = 2;
+    double h = l/N;
+    
+    sf::RectangleShape dv_int = sf::RectangleShape(sf::Vector2f(h-width, h-width));
+    dv_int.setFillColor(sf::Color::Black);
+    dv_int.setOrigin((h - width)/2, (h - width)/2);
+
+    sf::RectangleShape dv_ext = sf::RectangleShape(sf::Vector2f(h, h));
+    dv_ext.setFillColor(sf::Color::Red);
+    dv_ext.setOrigin(h/2, h/2);
+
+    sf::CircleShape test = sf::CircleShape(2);
+    test.setFillColor(sf::Color::White);
+    test.setOrigin(2, 2);
+
+    for (int i=1; i<N+1; i++) {
+        for (int j=1; j<N+1; j++) {
+            dv_ext.setPosition(off + (i-0.5)*h, off + (j-0.5)*h);
+            dv_int.setPosition(off + (i-0.5)*h, off + (j-0.5)*h);
+            test.setPosition(off + (i-0.5)*h, off + (j-0.5)*h);
+            p_window->draw(dv_ext);
+            p_window->draw(dv_int);
+            p_window->draw(test);
+        }
+    }
+}
