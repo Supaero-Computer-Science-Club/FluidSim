@@ -6,16 +6,17 @@
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/Graphics/Vertex.hpp>
 #include <SFML/System/Vector2.hpp>
+#include <math.h>
 
-FluidBox::FluidBox() : FluidBox(init_VD2(), init_VD2(), init_VD2()) {}
+FluidBox::FluidBox() : FluidBox(init_VD2(0), init_VD2(0), init_VD2(1)) {}
 
 FluidBox::FluidBox(VD2 u0, VD2 v0, VD2 rho0) :
     u(u0), v(v0), rho(rho0),
     u0(u0), v0(v0), rho0(rho0)
 {
-    prev_u = init_VD2();
-    prev_v = init_VD2();
-    prev_rho = init_VD2();
+    prev_u = init_VD2(0);
+    prev_v = init_VD2(0);
+    prev_rho = init_VD2(1);
 
     visc = 1;
     diff = 1;
@@ -28,9 +29,9 @@ VD2 FluidBox::get_rho() { return rho; }
 void FluidBox::set_viscosity(double v) { visc = v; }
 void FluidBox::set_diffusion(double d) { diff = d; }
 
-void FluidBox::reset() { u = u0; prev_u = init_VD2();
-                         v = v0; prev_v = init_VD2();
-                         rho = rho0; prev_rho = init_VD2(); }
+void FluidBox::reset() { u = u0; prev_u = init_VD2(0);
+                         v = v0; prev_v = init_VD2(0);
+                         rho = rho0; prev_rho = init_VD2(1); }
 
 
 // Static functions
@@ -55,7 +56,7 @@ VD1 FluidBox::gauss_seidel(VD2 a, VD1 b, VD1 x)
 }
 
 // Return a VD2 with N+2xN+2 0
-VD2 FluidBox::init_VD2() { return VD2(N+2, VD1(N+2, 0)); }
+VD2 FluidBox::init_VD2(double x) { return VD2(N+2, VD1(N+2, x)); }
 
 // update the velocity of each particules due to external forces, in each direction
 void FluidBox::forces(VD3 f, double dt) 
@@ -91,22 +92,24 @@ void FluidBox::diffusion(double dt)
 
 void FluidBox::advection() 
 {
-   VD2 tmp_u = VD2(u);
-   VD2 tmp_v = VD2(v);
+   VD2 rho0 = VD2(rho);
+   double h = 1./N;
    
-   for (int i=0; i<N+2; i++) {
-       for (int j=0; j<N+2; j++) {
-           u[i][j] += (u[i][j] - prev_u[i][j]) * visc;
-           v[i][j] += (v[i][j] - prev_v[i][j]) * visc;
-       }
-   }
-   
-    boundaries_u();
-    boundaries_v();
+    for (int k=0; k<k_gs; k++) {
+        for (int i=1; i<N+1; i++) {
+            for (int j=1; j<N+1; j++) {
+                double p_pos[2] = {(i+0.5)*h - prev_u[i][j], (j+0.5)*h - prev_v[i][j]};
+                double p_id[2] = {floor((p_pos[0] - 0.5*h) / h), floor((p_pos[1] - 0.5*h) / h)};
+                double p_off[2] = {p_pos[0]/h - p_id[0]-0.5, p_pos[1]/h - p_id[1]-0.5};
+                rho[i][j] = rho0[i][j] + visc * (
+                    (rho[p_id[0]][p_id[1]] * (1-p_off[0]) + rho[p_id[0]][p_id[1]+1] * p_off[0])*(1-p_off[1]) +
+                    (rho[p_id[0]+1][p_id[1]] * (1-p_off[0]) + rho[p_id[0]+1][p_id[1]+1] * p_off[0])*p_off[1] );
+            }
+        }
+    }
 
    // update previous position
-   prev_u = tmp_u; 
-   prev_v = tmp_v; 
+   prev_rho = rho0; 
 }
 
 void FluidBox::boundaries_u() 

@@ -29,7 +29,7 @@ public:
 
     // static functions
     static VD1 gauss_seidel(VD2 a, VD1 b, VD1 x); 
-    static VD2 init_VD2();
+    static VD2 init_VD2(double x);
 
     // controls
     void reset();

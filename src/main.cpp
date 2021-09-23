@@ -13,16 +13,16 @@ int main()
 {
     sf::RenderWindow window(sf::VideoMode (1400, 1000), "sfml-app");
 
-    VD2 u0 = FluidBox::init_VD2();
+    VD2 u0 = FluidBox::init_VD2(0);
     u0[20][20] = 500;
     u0[21][20] = 500;
     u0[20][21] = 500;
     u0[21][21] = 500;
 
-    FluidBox fbox(u0, FluidBox::init_VD2(), FluidBox::init_VD2());
+    FluidBox fbox(u0, FluidBox::init_VD2(0), FluidBox::init_VD2(1));
     fbox.set_viscosity(0.5);
 
-    VD3 f = {FluidBox::init_VD2(), FluidBox::init_VD2()};
+    VD3 f = {FluidBox::init_VD2(0), FluidBox::init_VD2(0)};
     double dt = 1; // in ms
 
     bool mode_step = true;
