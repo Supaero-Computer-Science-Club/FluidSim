@@ -39,3 +39,9 @@ make
 ./app
 ```
 
+# Controls
+Use the following keys to control the simulation:
+- Space: Switch on/off the step mode
+- Enter: In step mode only, make one simulation step
+- r: reset the simulation
+
