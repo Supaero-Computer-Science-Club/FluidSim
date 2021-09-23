@@ -3,13 +3,14 @@
 
 #include <SFML/Graphics.hpp>
 #include <vector>
+#include <iostream>
 
 using namespace std;
 typedef vector<double> VD1;
 typedef vector<vector<double>> VD2;
 typedef vector<vector<vector<double>>> VD3;
 
-static int const N = 50;
+static int const N = 100;
 static int const k_gs = 20; // number of iteration in gauss_seidel
 
 class FluidBox {
@@ -23,9 +24,14 @@ public:
 
     // seters 
     void set_viscosity(double v);
+    void set_diffusion(double d);
 
     // static functions
     static VD1 gauss_seidel(VD2 a, VD1 b, VD1 x); 
+    static VD2 init_VD2();
+
+    // controls
+    void reset();
     
     // update steps
     void forces(VD3 f, double dt);
@@ -38,6 +44,7 @@ public:
     void update(VD3 f, double dt);
 
     // graphics
+    void cout();
     void draw(sf::RenderWindow*);
 
 private:
