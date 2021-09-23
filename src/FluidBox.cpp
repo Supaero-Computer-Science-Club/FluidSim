@@ -7,11 +7,12 @@
 #include <SFML/Graphics/Vertex.hpp>
 #include <SFML/System/Vector2.hpp>
 
-FluidBox::FluidBox() 
+FluidBox::FluidBox() : FluidBox(init_VD2(), init_VD2(), init_VD2()) {}
+
+FluidBox::FluidBox(VD2 u0, VD2 v0, VD2 rho0) :
+    u(u0), v(v0), rho(rho0),
+    u0(u0), v0(v0), rho0(rho0)
 {
-    u = init_VD2();
-    v = init_VD2();
-    rho = init_VD2();
     prev_u = init_VD2();
     prev_v = init_VD2();
     prev_rho = init_VD2();
@@ -27,9 +28,9 @@ VD2 FluidBox::get_rho() { return rho; }
 void FluidBox::set_viscosity(double v) { visc = v; }
 void FluidBox::set_diffusion(double d) { diff = d; }
 
-void FluidBox::reset() { u = init_VD2(); prev_u = init_VD2();
-                         v = init_VD2(); prev_v = init_VD2();
-                         rho = init_VD2(); prev_rho = init_VD2(); }
+void FluidBox::reset() { u = u0; prev_u = init_VD2();
+                         v = v0; prev_v = init_VD2();
+                         rho = rho0; prev_rho = init_VD2(); }
 
 
 // Static functions
@@ -118,7 +119,7 @@ void FluidBox::boundaries_v()
         v[0][i] = -v[1][i];
         v[N+1][i] = -v[N][i];
         
-        // tang
+        // tang 
         v[i][0] = v[i][1];
         v[i][N+1] = v[i][N];
     }

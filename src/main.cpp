@@ -1,4 +1,6 @@
 #include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/Window/Event.hpp>
+#include <SFML/Window/Keyboard.hpp>
 #include <SFML/Window/VideoMode.hpp>
 #include <iostream>
 #include <SFML/Graphics.hpp>
@@ -9,18 +11,18 @@ using namespace std;
 
 int main() 
 {
-    sf::RenderWindow window(sf::VideoMode (1000, 1000), "sfml-app");
+    sf::RenderWindow window(sf::VideoMode (1400, 1000), "sfml-app");
 
-    FluidBox fbox;
-    cout << "Hello, World!" << endl;
-    
-    vector<VD2> f = {FluidBox::init_VD2(), FluidBox::init_VD2()};
-    for (int i=0; i<N+2; i++) { f[1][i][1] = 1e7; }
-    fbox.set_diffusion(1);
-    fbox.forces(f, 1e-4);
+    VD2 u0 = FluidBox::init_VD2();
+    u0[20][20] = -5000;
+    u0[21][20] = -5000;
+    u0[20][21] = -5000;
+    u0[21][21] = -5000;
+
+    FluidBox fbox(u0, FluidBox::init_VD2(), FluidBox::init_VD2());
     fbox.cout();
-    fbox.diffusion(1e-4);
-    fbox.cout();
+
+    bool mode_step = true;
 
     while (window.isOpen())
     {
@@ -29,10 +31,28 @@ int main()
         {
             if (event.type == sf::Event::Closed)
                 window.close();
+
+            if (event.type == sf::Event::KeyPressed) {
+                if (event.key.code == sf::Keyboard::Enter && mode_step) {
+                    fbox.diffusion(1e-4);
+                }
+
+                if (event.key.code == sf::Keyboard::Space) {
+                    mode_step = !mode_step;
+                }
+
+                if (event.key.code == sf::Keyboard::R) {
+                    fbox.reset();
+                }
+            }
         }
 
         window.clear();
-        fbox.diffusion(1e-4);
+
+        if (!mode_step) {
+            fbox.diffusion(1e-4);
+        }
+
         fbox.draw(&window);
         window.display();
     }

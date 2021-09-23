@@ -16,6 +16,7 @@ static int const k_gs = 20; // number of iteration in gauss_seidel
 class FluidBox {
 public:
     FluidBox();
+    FluidBox(VD2 u0, VD2 v0, VD2 rho0);
     FluidBox(double visc, double diff);
     // geters
     VD2 get_u();
@@ -54,13 +55,16 @@ private:
 
     // x velocity 
     VD2 u;
+    VD2 u0;
     VD2 prev_u;
     // y velocity 
     VD2 v;
+    VD2 v0;
     VD2 prev_v;
 
     // density 
     VD2 rho;
+    VD2 rho0;
     VD2 prev_rho;
 };
 
