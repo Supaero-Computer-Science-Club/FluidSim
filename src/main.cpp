@@ -14,13 +14,16 @@ int main()
     sf::RenderWindow window(sf::VideoMode (1400, 1000), "sfml-app");
 
     VD2 u0 = FluidBox::init_VD2();
-    u0[20][20] = -5000;
-    u0[21][20] = -5000;
-    u0[20][21] = -5000;
-    u0[21][21] = -5000;
+    u0[20][20] = 500;
+    u0[21][20] = 500;
+    u0[20][21] = 500;
+    u0[21][21] = 500;
 
     FluidBox fbox(u0, FluidBox::init_VD2(), FluidBox::init_VD2());
-    fbox.cout();
+    fbox.set_viscosity(0.5);
+
+    VD3 f = {FluidBox::init_VD2(), FluidBox::init_VD2()};
+    double dt = 1; // in ms
 
     bool mode_step = true;
 
@@ -34,7 +37,7 @@ int main()
 
             if (event.type == sf::Event::KeyPressed) {
                 if (event.key.code == sf::Keyboard::Enter && mode_step) {
-                    fbox.diffusion(1e-4);
+                    fbox.update(f, dt);
                 }
 
                 if (event.key.code == sf::Keyboard::Space) {
@@ -50,7 +53,7 @@ int main()
         window.clear();
 
         if (!mode_step) {
-            fbox.diffusion(1e-4);
+            fbox.update(f, dt);
         }
 
         fbox.draw(&window);

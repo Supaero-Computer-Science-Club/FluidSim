@@ -89,7 +89,25 @@ void FluidBox::diffusion(double dt)
     }
 }
 
-void FluidBox::advection() {}
+void FluidBox::advection() 
+{
+   VD2 tmp_u = VD2(u);
+   VD2 tmp_v = VD2(v);
+   
+   for (int i=0; i<N+2; i++) {
+       for (int j=0; j<N+2; j++) {
+           u[i][j] += (u[i][j] - prev_u[i][j]) * visc;
+           v[i][j] += (v[i][j] - prev_v[i][j]) * visc;
+       }
+   }
+   
+    boundaries_u();
+    boundaries_v();
+
+   // update previous position
+   prev_u = tmp_u; 
+   prev_v = tmp_v; 
+}
 
 void FluidBox::boundaries_u() 
 {
@@ -131,7 +149,12 @@ void FluidBox::boundaries_v()
     v[N+1][N+1] = 0.5*(v[N+1][N] + v[N][N+1]);
 }
 
-void FluidBox::update(VD3 f, double dt) {}
+void FluidBox::update(VD3 f, double dt) 
+{
+    forces(f, dt);
+    diffusion(dt);
+    advection();
+}
 
 void FluidBox::cout() 
 {
