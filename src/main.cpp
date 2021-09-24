@@ -37,6 +37,7 @@ int main()
 
             if (event.type == sf::Event::KeyPressed) {
                 if (event.key.code == sf::Keyboard::Enter && mode_step) {
+                    fbox.cout(20, 30);
                     fbox.update(f, dt);
                 }
 

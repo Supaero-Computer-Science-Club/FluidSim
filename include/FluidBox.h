@@ -45,7 +45,7 @@ public:
     void update(VD3 f, double dt);
 
     // graphics
-    void cout();
+    void cout(int a, int b);
     void draw(sf::RenderWindow*);
 
 private:

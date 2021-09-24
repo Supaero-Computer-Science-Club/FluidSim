@@ -101,7 +101,7 @@ void FluidBox::advection()
                 double p_pos[2] = {(i+0.5)*h - prev_u[i][j], (j+0.5)*h - prev_v[i][j]};
                 double p_id[2] = {floor((p_pos[0] - 0.5*h) / h), floor((p_pos[1] - 0.5*h) / h)};
                 double p_off[2] = {p_pos[0]/h - p_id[0]-0.5, p_pos[1]/h - p_id[1]-0.5};
-                rho[i][j] = rho0[i][j] + visc * (
+                rho[i][j] = visc * (
                     (rho[p_id[0]][p_id[1]] * (1-p_off[0]) + rho[p_id[0]][p_id[1]+1] * p_off[0])*(1-p_off[1]) +
                     (rho[p_id[0]+1][p_id[1]] * (1-p_off[0]) + rho[p_id[0]+1][p_id[1]+1] * p_off[0])*p_off[1] );
             }
@@ -159,20 +159,28 @@ void FluidBox::update(VD3 f, double dt)
     advection();
 }
 
-void FluidBox::cout() 
+void FluidBox::cout(int a, int b) 
 {
     std::cout << "u" << std::endl;
-    for (int i=0; i<N+2; i++) {
-        for (int j=0; j<N+2; j++) {
+    for (int i=a; i<b; i++) {
+        for (int j=a; j<b; j++) {
             std::cout << u[j][i] << "  ";
         }
         std::cout << std::endl;
     }
 
     std::cout << "v" << std::endl;
-    for (int i=0; i<N+2; i++) {
-        for (int j=0; j<N+2; j++) {
+    for (int i=a; i<b; i++) {
+        for (int j=a; j<b; j++) {
             std::cout << v[j][i] << "  ";
+        }
+        std::cout << std::endl;
+    }
+
+    std::cout << "rho" << std::endl;
+    for (int i=a; i<b; i++) {
+        for (int j=a; j<b; j++) {
+            std::cout << rho[j][i] << "  ";
         }
         std::cout << std::endl;
     }
@@ -184,25 +192,23 @@ void FluidBox::draw(sf::RenderWindow * p_window)
     double off = 100;
     double width = 2;
     double h = l/N;
+    double alpha = 128; // reshape the density to fit the color
     
     sf::RectangleShape dv_int = sf::RectangleShape(sf::Vector2f(h-width, h-width));
-    dv_int.setFillColor(sf::Color::Black);
     dv_int.setOrigin((h - width)/2, (h - width)/2);
 
     sf::RectangleShape dv_ext = sf::RectangleShape(sf::Vector2f(h, h));
     dv_ext.setFillColor(sf::Color::Red);
     dv_ext.setOrigin(h/2, h/2);
 
-    sf::CircleShape test = sf::CircleShape(1);
-    test.setFillColor(sf::Color::White);
-    test.setOrigin(1, 1);
-
     for (int i=1; i<N+1; i++) {
         for (int j=1; j<N+1; j++) {
             sf::Vector2f m = sf::Vector2f(off + (i-0.5)*h, off + (j-0.5)*h);
             dv_ext.setPosition(m);
+
+            int color = floor(rho[i][j] * alpha);
             dv_int.setPosition(m);
-            test.setPosition(m);
+            dv_int.setFillColor(sf::Color(color, color, color));
             p_window->draw(dv_ext);
             p_window->draw(dv_int);
             //p_window->draw(test);
