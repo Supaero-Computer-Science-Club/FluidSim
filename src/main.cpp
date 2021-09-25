@@ -24,8 +24,8 @@ int main()
 
 
     VD2 a = FluidBox::init_VD2(0);
-    VD3 f = {a, FluidBox::init_VD2(0)};
-    a[25][25] = 20;
+    a[2][25] = 10;
+    VD3 f = {VD2(a), FluidBox::init_VD2(0)};
 
     FluidBox fbox(FluidBox::init_VD2(0), FluidBox::init_VD2(0), r);
     fbox.set_diffusion(1e-3);

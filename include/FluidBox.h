@@ -40,7 +40,7 @@ public:
     // update steps
     void forces(VD3 f, double dt);
     void diffusion(double dt);
-    void advection();
+    void advection(double dt);
     void conserve_masse();
     void boundaries_u();
     void boundaries_v();
