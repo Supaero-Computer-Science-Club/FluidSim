@@ -53,6 +53,9 @@ private:
     double visc;
     double diff;
 
+    // size
+    double const l = 800; // size of the box
+
     // x velocity 
     VD2 u;
     VD2 u0;

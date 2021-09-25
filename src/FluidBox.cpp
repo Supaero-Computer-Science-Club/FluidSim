@@ -76,6 +76,7 @@ void FluidBox::diffusion(double dt)
 
     VD2 u0(u); // deep copy
     VD2 v0(v); // deep copy
+    VD2 rho0(rho); // deep copy
     for (int k=0; k<k_gs; k++) {
         for (int i=1; i<N+1; i++) {
             for (int j=1; j<N+1; j++) {
@@ -83,6 +84,8 @@ void FluidBox::diffusion(double dt)
                                           u[i][j-1] + u[i][j+1])) / (1+4*eff_diff);
                 v[i][j] = (v0[i][j] + eff_diff*(v[i-1][j] + v[i+1][j] + 
                                           v[i][j-1] + v[i][j+1])) / (1+4*eff_diff);
+                rho[i][j] = (rho0[i][j] + eff_diff*(rho[i-1][j] + rho[i+1][j] + 
+                                          rho[i][j-1] + rho[i][j+1])) / (1+4*eff_diff);
             }
         }
         boundaries_u(); // continuity at boundarie
@@ -93,23 +96,34 @@ void FluidBox::diffusion(double dt)
 void FluidBox::advection() 
 {
    VD2 rho0 = VD2(rho);
-   double h = 1./N;
+   double h = l/N;
+   double max = 0;
    
     for (int k=0; k<k_gs; k++) {
         for (int i=1; i<N+1; i++) {
             for (int j=1; j<N+1; j++) {
-                double p_pos[2] = {(i+0.5)*h - prev_u[i][j], (j+0.5)*h - prev_v[i][j]};
+                double p_pos[2] = {(i+0.5)*h - u[i][j], (j+0.5)*h - v[i][j]};
                 double p_id[2] = {floor((p_pos[0] - 0.5*h) / h), floor((p_pos[1] - 0.5*h) / h)};
                 double p_off[2] = {p_pos[0]/h - p_id[0]-0.5, p_pos[1]/h - p_id[1]-0.5};
-                rho[i][j] = visc * (
-                    (rho[p_id[0]][p_id[1]] * (1-p_off[0]) + rho[p_id[0]][p_id[1]+1] * p_off[0])*(1-p_off[1]) +
-                    (rho[p_id[0]+1][p_id[1]] * (1-p_off[0]) + rho[p_id[0]+1][p_id[1]+1] * p_off[0])*p_off[1] );
+                if (p_id[0] > 0 && p_id[0] < N+1 && p_id[1] > 0 && p_id[1] < N+1) {
+                    rho[i][j] = 
+                        (rho[p_id[0]][p_id[1]] * (1-p_off[0]) 
+                         + rho[p_id[0]][p_id[1]+1] * p_off[0])*(1-p_off[1]) +
+                        (rho[p_id[0]+1][p_id[1]] * (1-p_off[0]) 
+                         + rho[p_id[0]+1][p_id[1]+1] * p_off[0])*p_off[1] ; 
+                }
+                
+                if (rho[i][j] > max) { max = rho[i][j]; }
+                if (k==0 && i==22 && j==22) {
+                    std::cout << "pos: (" << p_pos[0] << ", " << p_pos[1] << ")" << std::endl;
+                    std::cout << "id: (" << p_id[0] << ", " << p_id[1] << ")" << std::endl;
+                    std::cout << "off: (" << p_off[0] << ", " << p_off[1] << ")" << std::endl;
+                }
             }
         }
     }
 
-   // update previous position
-   prev_rho = rho0; 
+    std::cout << max << std::endl;
 }
 
 void FluidBox::boundaries_u() 
@@ -154,6 +168,9 @@ void FluidBox::boundaries_v()
 
 void FluidBox::update(VD3 f, double dt) 
 {
+    prev_u = VD2(u);
+    prev_v = VD2(v);
+
     forces(f, dt);
     diffusion(dt);
     advection();
@@ -169,10 +186,10 @@ void FluidBox::cout(int a, int b)
         std::cout << std::endl;
     }
 
-    std::cout << "v" << std::endl;
+    std::cout << "prev_u" << std::endl;
     for (int i=a; i<b; i++) {
         for (int j=a; j<b; j++) {
-            std::cout << v[j][i] << "  ";
+            std::cout << prev_u[j][i] << "  ";
         }
         std::cout << std::endl;
     }
@@ -188,11 +205,10 @@ void FluidBox::cout(int a, int b)
 
 void FluidBox::draw(sf::RenderWindow * p_window) 
 {
-    double l = 800; // size of the box
     double off = 100;
     double width = 2;
     double h = l/N;
-    double alpha = 128; // reshape the density to fit the color
+    double alpha = 255; // reshape the density to fit the color
     
     sf::RectangleShape dv_int = sf::RectangleShape(sf::Vector2f(h-width, h-width));
     dv_int.setOrigin((h - width)/2, (h - width)/2);
@@ -213,7 +229,7 @@ void FluidBox::draw(sf::RenderWindow * p_window)
             p_window->draw(dv_int);
             //p_window->draw(test);
 
-            sf::Vertex vel[2] = {m, m+sf::Vector2f(u[i][j], v[i][j])};
+            sf::Vertex vel[2] = {sf::Vertex(m, sf::Color::Blue), sf::Vertex(m+sf::Vector2f(u[i][j], v[i][j]), sf::Color::Blue)};
             p_window->draw(vel, 2, sf::Lines);
         }
     }
