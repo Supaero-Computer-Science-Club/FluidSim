@@ -58,6 +58,20 @@ VD1 FluidBox::gauss_seidel(VD2 a, VD1 b, VD1 x)
 // Return a VD2 with N+2xN+2 0
 VD2 FluidBox::init_VD2(double x) { return VD2(N+2, VD1(N+2, x)); }
 
+float FluidBox::norm(sf::Vector2f v)
+{
+    return sqrt(v.x*v.x + v.y*v.y);
+}
+
+sf::Vector2f FluidBox::normalize(sf::Vector2f v)
+{
+    float n = norm(v);
+    if (n != 0) {
+        return (1 / norm(v)) * v;
+    }
+    return sf::Vector2f(0,0);
+}
+
 // update the velocity of each particules due to external forces, in each direction
 void FluidBox::forces(VD3 f, double dt) 
 {
@@ -90,6 +104,7 @@ void FluidBox::diffusion(double dt)
         }
         boundaries_u(); // continuity at boundarie
         boundaries_v();
+        boundaries_rho();
     }
 }
 
@@ -113,7 +128,7 @@ void FluidBox::advection()
                          + rho[p_id[0]+1][p_id[1]+1] * p_off[0])*p_off[1] ; 
                 }
                 
-                if (rho[i][j] > max) { max = rho[i][j]; }
+                if (abs(rho[i][j]) > max) { max = abs(rho[i][j]); }
                 if (k==0 && i==22 && j==22) {
                     std::cout << "pos: (" << p_pos[0] << ", " << p_pos[1] << ")" << std::endl;
                     std::cout << "id: (" << p_id[0] << ", " << p_id[1] << ")" << std::endl;
@@ -166,11 +181,25 @@ void FluidBox::boundaries_v()
     v[N+1][N+1] = 0.5*(v[N+1][N] + v[N][N+1]);
 }
 
+void FluidBox::boundaries_rho() 
+{
+    for (int i=1; i<N+1; i++)
+    {
+        rho[0][i] = rho[1][i];
+        rho[N+1][i] = rho[N][i];
+        rho[i][0] = rho[i][1];
+        rho[i][N+1] = rho[i][N];
+    }
+
+    // corners
+    rho[0][0] = 0.5*(rho[1][0] + rho[0][1]);
+    rho[N+1][0] = 0.5*(rho[N][0] + rho[N+1][1]);
+    rho[0][N+1] = 0.5*(rho[1][N+1] + rho[0][N]);
+    rho[N+1][N+1] = 0.5*(rho[N+1][N] + rho[N][N+1]);
+}
+
 void FluidBox::update(VD3 f, double dt) 
 {
-    prev_u = VD2(u);
-    prev_v = VD2(v);
-
     forces(f, dt);
     diffusion(dt);
     advection();
@@ -206,30 +235,31 @@ void FluidBox::cout(int a, int b)
 void FluidBox::draw(sf::RenderWindow * p_window) 
 {
     double off = 100;
-    double width = 2;
     double h = l/N;
     double alpha = 255; // reshape the density to fit the color
-    
-    sf::RectangleShape dv_int = sf::RectangleShape(sf::Vector2f(h-width, h-width));
-    dv_int.setOrigin((h - width)/2, (h - width)/2);
+    int beta = 5; // reshape the velocity color
 
-    sf::RectangleShape dv_ext = sf::RectangleShape(sf::Vector2f(h, h));
-    dv_ext.setFillColor(sf::Color::Red);
-    dv_ext.setOrigin(h/2, h/2);
+    
+    sf::RectangleShape dv_int = sf::RectangleShape(sf::Vector2f(h, h));
+    dv_int.setOrigin(h/2, h/2);
+
 
     for (int i=1; i<N+1; i++) {
         for (int j=1; j<N+1; j++) {
             sf::Vector2f m = sf::Vector2f(off + (i-0.5)*h, off + (j-0.5)*h);
-            dv_ext.setPosition(m);
 
-            int color = floor(rho[i][j] * alpha);
+            int color_rho = floor(sqrt(rho[i][j]) * alpha);
             dv_int.setPosition(m);
-            dv_int.setFillColor(sf::Color(color, color, color));
-            p_window->draw(dv_ext);
+            dv_int.setFillColor(sf::Color(color_rho, color_rho, color_rho));
             p_window->draw(dv_int);
-            //p_window->draw(test);
+    
+            sf::Vector2f dir = sf::Vector2f(u[i][j], v[i][j]);
+            int norm = floor(FluidBox::norm(dir)) * beta;
+            dir = FluidBox::normalize(dir);
+            if (norm > 255) { norm = 255; }
+            sf::Color color_vel = sf::Color(norm, 255-norm, 0);
 
-            sf::Vertex vel[2] = {sf::Vertex(m, sf::Color::Blue), sf::Vertex(m+sf::Vector2f(u[i][j], v[i][j]), sf::Color::Blue)};
+            sf::Vertex vel[2] = {sf::Vertex(m, color_vel), sf::Vertex(m+ (float)h * dir, color_vel)};
             p_window->draw(vel, 2, sf::Lines);
         }
     }

@@ -2,6 +2,7 @@
 #define FLUIDBOX_H
 
 #include <SFML/Graphics.hpp>
+#include <SFML/System/Vector2.hpp>
 #include <vector>
 #include <iostream>
 
@@ -10,7 +11,7 @@ typedef vector<double> VD1;
 typedef vector<vector<double>> VD2;
 typedef vector<vector<vector<double>>> VD3;
 
-static int const N = 100;
+static int const N = 50;
 static int const k_gs = 20; // number of iteration in gauss_seidel
 
 class FluidBox {
@@ -30,6 +31,8 @@ public:
     // static functions
     static VD1 gauss_seidel(VD2 a, VD1 b, VD1 x); 
     static VD2 init_VD2(double x);
+    static float norm(sf::Vector2f);
+    static sf::Vector2f normalize(sf::Vector2f);
 
     // controls
     void reset();
@@ -41,6 +44,7 @@ public:
     void conserve_masse();
     void boundaries_u();
     void boundaries_v();
+    void boundaries_rho();
 
     void update(VD3 f, double dt);
 
