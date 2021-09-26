@@ -15,17 +15,19 @@ int main()
     sf::RenderWindow window(sf::VideoMode (1400, 1000), "sfml-app");
 
     VD2 r = FluidBox::init_VD2(0);
-    for (int i=15; i<=35; i++) {
-        r[i][15] = 1;
-        r[i][35] = 1;
-        r[15][i] = 1;
-        r[35][i] = 1;
+    int a(20);
+    int b(30);
+    for (int i=a; i<=b; i++) {
+        r[i][a] = 1;
+        r[i][b] = 1;
+        r[a][i] = 1;
+        r[b][i] = 1;
     }
 
 
-    VD2 a = FluidBox::init_VD2(0);
-    a[2][25] = 10;
-    VD3 f = {VD2(a), FluidBox::init_VD2(0)};
+    VD2 f0 = FluidBox::init_VD2(0);
+    f0[2][25] = 10;
+    VD3 f = {VD2(f0), FluidBox::init_VD2(0)};
 
     FluidBox fbox(FluidBox::init_VD2(0), FluidBox::init_VD2(0), r);
     fbox.set_diffusion(1e-3);

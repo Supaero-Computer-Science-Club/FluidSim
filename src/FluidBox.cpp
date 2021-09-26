@@ -16,7 +16,7 @@ FluidBox::FluidBox(VD2 u0, VD2 v0, VD2 rho0) :
 {
     prev_u = init_VD2(0);
     prev_v = init_VD2(0);
-    prev_rho = init_VD2(1);
+    prev_rho = VD2(rho);
 
     visc = 1;
     diff = 1;
@@ -88,20 +88,25 @@ void FluidBox::diffusion(double dt)
     // effective diffusion coef, resized with the dimension of the box and the deltatime
     double eff_diff = N*N*diff*dt; 
 
-    VD2 u0(u); // deep copy
-    VD2 v0(v); // deep copy
-    VD2 rho0(rho); // deep copy
     for (int k=0; k<k_gs; k++) {
+        VD2 new_u = init_VD2(0); // deep copy
+        VD2 new_v = init_VD2(0); // deep copy
+        VD2 new_rho = init_VD2(0); // deep copy
         for (int i=1; i<N+1; i++) {
             for (int j=1; j<N+1; j++) {
-                u[i][j] = (u0[i][j] + eff_diff*(u[i-1][j] + u[i+1][j] + 
+                new_u[i][j] = (prev_u[i][j] + eff_diff*(u[i-1][j] + u[i+1][j] + 
                                           u[i][j-1] + u[i][j+1])) / (1+4*eff_diff);
-//                v[i][j] = (v0[i][j] + eff_diff*(v[i-1][j] + v[i+1][j] + 
-//                                          v[i][j-1] + v[i][j+1])) / (1+4*eff_diff);
-                rho[i][j] = (rho0[i][j] + eff_diff*(rho[i-1][j] + rho[i+1][j] + 
+                new_v[i][j] = (prev_v[i][j] + eff_diff*(v[i-1][j] + v[i+1][j] + 
+                                          v[i][j-1] + v[i][j+1])) / (1+4*eff_diff);
+                new_rho[i][j] = (prev_rho[i][j] + eff_diff*(rho[i-1][j] + rho[i+1][j] + 
                                           rho[i][j-1] + rho[i][j+1])) / (1+4*eff_diff);
             }
         }
+        
+        u = VD2(new_u);
+        v = VD2(new_v);
+        rho = VD2(new_rho);
+
         boundaries_u(); // continuity at boundarie
         boundaries_v();
         boundaries_rho();
@@ -211,6 +216,10 @@ void FluidBox::update(VD3 f, double dt)
     forces(f, dt);
     diffusion(dt);
     advection(dt);
+
+    prev_u = VD2(u);
+    prev_v = VD2(v);
+    prev_rho = VD2(rho);
 }
 
 void FluidBox::cout(int a, int b) 
